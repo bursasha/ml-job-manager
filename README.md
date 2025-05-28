@@ -156,3 +156,10 @@ docker compose logs -f ml-job-worker
 docker compose logs -f ml-job-queue
 docker compose logs -f ml-job-db
 ```
+
+---
+
+## 📄 License
+
+This work is made available under the terms of a non‐exclusive authorization per Act No. 121/2000 Coll., Copyright Act, 
+and Section 2373(2) of Act No. 89/2012 Coll., Civil Code (see [ML Job Manager LICENSE](./LICENSE) for full text).
