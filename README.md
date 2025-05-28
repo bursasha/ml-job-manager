@@ -1,9 +1,10 @@
-# ML Job Manager
+# 🤖 ML Job Manager
 
-Monorepo containing three components for an end-to-end ML job orchestration platform:
+Monorepo containing 3 components for an end-to-end ML job orchestration platform:
 
 ```
 ml-job-manager/
+├── images/           ← project diagrams & visuals (architecture, screenshots)
 ├── ml-job-api/       ← ML Job API FastAPI microservice (REST API)
 ├── ml-job-ui/        ← ML Job UI React frontend (Web Interface + Spectra Visualizations)
 ├── ml-job-worker/    ← ML Job Worker Celery Worker (Data Preprocessing & Active ML)
@@ -11,26 +12,41 @@ ml-job-manager/
 └── README.md         ← this file
 ```
 
+![ML Job Manager Architecture](images/architecture.png)
+
 ---
 
 ## 🚀 Features
 
-- **ML Job API**  
+- **ML Job API**:
+
   – CRUD endpoints for **jobs**, **labellings**, **spectra**, **file** storage.
+
   – Async `PostgreSQL` persistence, `Alembic` migrations.  
+
   – `Celery` integration for dispatching jobs.
 
-- **ML Job Worker**  
+
+- **ML Job Worker**:
+
   – `Celery` jobs: Data Preprocessing & Active ML pipelines.
+
   – `TensorFlow` CNN, `Scikit-Learn` utilities (SMOTE, t-SNE).
+
   – `HTTPX` callbacks to **ML Job API**.
 
-- **ML Job UI**  
-  – `React` + `Tailwind` dashboard. 
+
+- **ML Job UI**: 
+
+  – `React` + `Tailwind` Web frontend. 
+
   – Live **job status**, **spectra view**, **labelling workflow**.
 
-- **DevOps**  
+
+- **DevOps**:
+
   – `Docker` & `Docker Compose` for full-stack local development.
+
   – Environment-driven configuration via `.env` and Pydantic.
 
 ---
@@ -38,6 +54,7 @@ ml-job-manager/
 ## 📦 Prerequisites
 
 - `Docker` & `Docker Compose` ≥ v2.0. 
+
 - Nvidia GPU for **ML Job Worker** `TensorFlow` CNN computations.
 
 ---
@@ -51,7 +68,7 @@ git clone https://github.com/bursasha/ml-job-manager.git
 cd ml-job-manager
 ```
 
-Create a .env in the project root (see .env.example for all keys):
+Create a `.env` in the project root (see `.env.example` for all keys):
 
 ```dotenv
 DEBUG=True
@@ -94,14 +111,22 @@ docker compose up
 ```
 
 This will launch following services:
+
 - **ML Job UI** (`React`)
+
 - **ML Job API** (`FastAPI`)
+
 - **ML Job Worker** (`Celery`)
+
 - **ML Job Queue** (`RabbitMQ`)
+
 - **ML Job DB** (`PostgreSQL`)
 
+
 You can now:
+
 - Visit the UI at http://localhost:10000
+
 - Browse API docs at http://localhost:10100/docs
 
 ---

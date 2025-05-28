@@ -1,38 +1,51 @@
-# ML Job API
+# 🌐 ML Job API
 
 **Asynchronous microservice** built with `FastAPI`, `SQLAlchemy`, `Alembic`, and `Celery`.
 
 ---
 
-## Overview
+## 🔍 Overview
 
 The application exposes RESTful endpoints to:
 
 - **Upload**, **download**, **list**, and **delete** arbitrary files (e.g. input data).
+
 - **Retrieve** and parse FITS spectra metadata.
+
 - Manage ML jobs (e.g. **create**, **start**, **abort**, **complete**).
+
 - **Track** human-in-the-loop “labellings” for active ML workflows.
 
-It leverages `PostgreSQL` for metadata persistence, `RabbitMQ`/`Celery` for job orchestration, and the local filesystem for file & spectral storage.
+It leverages `PostgreSQL` (**ML Job DB**)/`SQLAlchemy` for metadata persistence, `RabbitMQ` (**ML Job Queue**)/`Celery` for job orchestration, and the local filesystem/`aiofiles` for file & spectral storage.
 
 ---
 
-## Features
+## 📍 Features
 
 - `FastAPI` driven OpenAPI docs.
+
 - Asynchronous I/O with `asyncpg` & `aiofiles`.
+
 - `Celery` + `RabbitMQ` job queue. 
+
 - `SQLAlchemy` + `Alembic` migrations.
+
 - `Pydantic` models & settings for robust validation. 
 
 ---
 
-## Tech Stack
+## ⚙️ Tech Stack
 
 - `Python 3.13 ` 
+
 - `FastAPI`  
+
+- `Pydantic`  
+
 - `SQLAlchemy 2.0` + `Alembic`
-- `Celery 5` + `RabbitMQ`
-- `PostgreSQL 17`  
+
+- `Celery 5`
+ 
 - `Astropy` for FITS parsing
+
 - `Docker` & `Docker Compose`
