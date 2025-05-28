@@ -1,0 +1,127 @@
+# ----------------------------------------------------------
+# Docker Compose – ML Job Manager system stack.
+# ----------------------------------------------------------
+
+
+# --------------------- Shared network ---------------------
+networks:
+
+  # Custom bridge network so all services see each other by
+  # container-name DNS
+  ml-job-network:
+    name: ml-job-network # Real network name that Docker creates
+    driver: bridge # Use default Linux bridge driver (isolated subnet)
+
+
+# --------------------- Named volumes ----------------------
+volumes:
+
+  # Persistent storage for ML Job DB data directory
+  ml-job-db-data:
+    name: ml-job-db-data # docker-managed volume name on host
+
+  # Persistent storage for ML Job Queue data & metadata
+  ml-job-queue-data:
+    name: ml-job-queue-data # docker-managed volume name on host
+
+
+# ------------------- Service definitions ------------------
+services:
+
+  # ---------------------- ML Job UI -----------------------
+  ml-job-ui:
+    build: # Build image locally
+      context: ./ml-job-ui # Folder that contains Dockerfile
+      dockerfile: Dockerfile # Explicit Dockerfile name
+    image: ml-job-ui:latest # Tag produced image for reuse
+    container_name: ml-job-ui # Fixed container name (easier logs)
+    restart: unless-stopped # Auto-restart unless manually stopped
+    entrypoint: ["./scripts/entrypoint.sh"] # Installs deps & starts server
+    ports: # Port mappings from host to container
+      - "${UI_PORT}:5173" # Host UI_PORT → container 5173
+    environment: # Environment variables passed to the container
+      - VITE_API_URL=http://localhost:${API_PORT}/api # Front-end → Back-end base URL
+    networks: # Network configuration
+      - ml-job-network # Attach to shared bridge network
+
+  # ---------------------- ML Job API ----------------------
+  ml-job-api:
+    build: # Build image locally
+      context: ./ml-job-api # Folder that contains Dockerfile
+      dockerfile: Dockerfile # Explicit Dockerfile name
+    image: ml-job-api:latest # Tag produced image for reuse
+    container_name: ml-job-api # Fixed container name (easier logs)
+    restart: unless-stopped # Auto-restart unless manually stopped
+    entrypoint: ["./scripts/entrypoint.sh"] # Installs deps & starts server
+    ports: # Port mappings from host to container
+      - "${API_PORT}:8000" # Host API_PORT → container 8000
+    environment: # Environment variables passed to the container
+      - debug=${DEBUG} # Enable verbose logging
+      - files_dir_path=/FILES # Shared volume of host FS
+      - spectra_dir_path=/SPECTRA # Read-only FITS archive mountpoint
+      - db_url=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@ml-job-db:5432/${POSTGRES_DB} # ML Job DB DSN
+      - engine_connection_timeout=${ENGINE_CONNECTION_TIMEOUT} # ML Job DB connect timeout
+      - broker_url=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@ml-job-queue:5672 # ML Job Queue DSN
+      - task_default_queue=${JOB_QUEUE} # ML Job Queue Celery queue name
+    volumes: # Volumes configuration
+      - ${FILES_DIR_PATH}:/FILES # System filesystem data /FILES (read and write)
+      - ${SPECTRA_DIR_PATH}:/SPECTRA:ro # Large spectral data /SPECTRA (read-only)
+    networks: # Network configuration
+      - ml-job-network # Attach to shared bridge network
+
+  # --------------------- ML Job Worker --------------------
+  ml-job-worker:
+    build: # Build image locally
+      context: ./ml-job-worker # Folder that contains Dockerfile
+      dockerfile: Dockerfile # Explicit Dockerfile name
+    image: ml-job-worker:latest # Tag produced image for reuse
+    container_name: ml-job-worker # Fixed container name (easier logs)
+    restart: unless-stopped # Auto-restart unless manually stopped
+    entrypoint: ["./scripts/entrypoint.sh"] # Installs deps & starts server
+    ports: # Port mappings from host to container
+      - "${WORKER_PORT}:8000" # Host WORKER_PORT → container 8000
+    environment: # Environment variables passed to the container
+      - broker_url=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@ml-job-queue:5672 # ML Job Queue DSN
+      - broker_connection_timeout=${BROKER_CONNECTION_TIMEOUT} # ML Job Queue connect timeout
+      - task_default_queue=${JOB_QUEUE} # ML Job Queue Celery queue name
+      - files_dir_path=/FILES # Shared volume of host FS
+      - spectra_dir_path=/SPECTRA # Read-only FITS archive mountpoint
+      - api_url=http://ml-job-api:8000/api # ML Job API base URL
+      - api_connection_timeout=${API_CONNECTION_TIMEOUT} # ML Job API connect timeout
+      - NVIDIA_VISIBLE_DEVICES=all # GPU passthrough (requires nvidia-container-runtime)
+      - NVIDIA_DRIVER_CAPABILITIES=all # GPU passthrough (requires nvidia-container-runtime)
+    runtime: nvidia # Enable NVIDIA runtime for GPU jobs
+    volumes: # Volumes configuration
+      - ${FILES_DIR_PATH}:/FILES # System filesystem data /FILES (read and write)
+      - ${SPECTRA_DIR_PATH}:/SPECTRA:ro # Large spectral data /SPECTRA (read-only)
+    networks: # Network configuration
+      - ml-job-network # Attach to shared bridge network
+
+  # --------------------- ML Job Queue ---------------------
+  ml-job-queue:
+    image: rabbitmq:4-management-alpine # Lightweight RabbitMQ image with web console
+    container_name: ml-job-queue # Fixed container name (easier logs)
+    restart: unless-stopped # Auto-restart unless manually stopped
+    ports: # Port mappings from host to container
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672" # Host RABBITMQ_MANAGEMENT_PORT → container 15672
+    environment: # Environment variables passed to the container
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER} # Broker admin user
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS} # Broker admin password
+    volumes: # Volumes configuration
+      - ml-job-queue-data:/var/lib/rabbitmq # Message store & metadata
+    networks: # Network configuration
+      - ml-job-network # Attach to shared bridge network
+
+  # ---------------------- ML Job DB -----------------------
+  ml-job-db:
+    image: postgres:17-bookworm # Official Postgres 17 (Debian 12 image)
+    container_name: ml-job-db # Fixed container name (easier logs)
+    restart: unless-stopped # Auto-restart unless manually stopped
+    environment: # Environment variables passed to the container
+      - POSTGRES_USER=${POSTGRES_USER} # Super-user name
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # Super-user password
+      - POSTGRES_DB=${POSTGRES_DB} # Default database to create
+    volumes: # Volumes configuration
+      - ml-job-db-data:/var/lib/postgresql/data # PGDATA inside named volume
+    networks: # Network configuration
+      - ml-job-network # Attach to shared bridge network

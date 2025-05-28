@@ -1,0 +1,20 @@
+{
+  "iteration": 0,
+  "training_data_path": "enter/path/to/training/data",
+  "pool_data_path": "enter/path/to/pool/data",
+  "training_data_to_add_path": "enter/path/to/training_data/to_add",
+  "oracle_data_to_add_path": "enter/path/to/oracle_data",
+  "classes": ["other", "single peak", "double peak"],
+  "candidate_classes": ["single peak", "double peak"],
+  "oracle_batch_size": 100,
+  "perf_est_batch_size": 10,
+  "show_candidates": false,
+  "save_model": false,
+  "min_delta_train": 10e-4,
+  "patience_train": 10,
+  "batch_size_train": 64,
+  "epochs_train": 1000,
+  "batch_size_predict": 16384,
+  "perf_est_list_path": "enter/perf_est_list/path"
+
+}

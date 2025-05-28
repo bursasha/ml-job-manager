@@ -1,0 +1,6 @@
+{
+  "wave_start_point": 3100,
+  "wave_end_point": 9000,
+  "wave_point_count": 600,
+  "data_dir_path": "enter/path/lamost_fit/antares"
+}
