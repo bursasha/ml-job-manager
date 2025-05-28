@@ -9,6 +9,7 @@ ml-job-manager/
 ├── ml-job-ui/        ← ML Job UI React frontend (Web Interface + Spectra Visualizations)
 ├── ml-job-worker/    ← ML Job Worker Celery Worker (Data Preprocessing & Active ML)
 ├── docker-compose.yml
+├── LICENSE           ← project license
 └── README.md         ← this file
 ```
 
