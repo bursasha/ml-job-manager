@@ -12,7 +12,7 @@ ml-job-manager/
 └── README.md         ← this file
 ```
 
-![ML Job Manager Architecture](images/architecture.png)
+![ML Job Manager Architecture](./images/architecture.png)
 
 ---
 
